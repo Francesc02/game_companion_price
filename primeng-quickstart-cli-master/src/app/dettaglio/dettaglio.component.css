@@ -1,0 +1,39 @@
+/* mat-card-title{
+    position: absolute;
+    top: 0px;
+    left: 50%;
+} */
+img{
+    position: relative;
+    opacity: 20%;
+    width: 100%;
+    height: 50%;
+}
+mat-card-content{
+    
+    position: absolute;
+    top: 150px;
+    left: 0;
+}
+p{
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: clamp(20px , 4vm , 32px);
+}
+mat-card-footer{
+    position: absolute;
+    top: 100%;
+    left: 50%;
+}
+
+/* @media screen and (min-width: 768px) {
+    p {
+        font-size: 200%;
+    }
+}
+
+/* Dimensione del testo per i telefoni 
+@media screen and (max-width: 767px) {
+    p {
+        font-size: 80%;
+    }
+} */

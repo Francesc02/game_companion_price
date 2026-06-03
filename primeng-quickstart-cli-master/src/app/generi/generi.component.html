@@ -1,0 +1,25 @@
+<p-card>
+        <div *ngIf="film" class="container-div">
+            <div *ngFor="let film of film.results" class="col-auto mr-3 ml-3">
+                <mat-card class="example-card">
+              <mat-card-header>
+                <div mat-card-avatar></div>
+            </mat-card-header>
+            <img mat-card-image src="https://image.tmdb.org/t/p/original/{{film.poster_path}}">
+            <mat-card-content>
+                  <mat-card-title><h1>{{film.title}}</h1></mat-card-title>
+                <p>
+                  Visto da {{film.popularity}} persone <br>
+                  <span class="pi pi-star"></span> Voto: {{film.vote_average}}/10 <span class="pi pi-star"></span><br>
+                  Votato da {{film.vote_count}} persone
+                </p>
+              </mat-card-content>
+              <mat-card-actions style="justify-content: space-around; font-size: 8px;">
+                <!-- <button class="pi pi-play"></button> -->
+                <button pButton pRipple type="button" label="Watch" class="p-button-outlined p-button-secondary" (click)="goToDettaglio(film.id)"><span class="pi pi-play">&nbsp;</span></button>
+                <button pButton pRipple type="button" label="Share" class="p-button-outlined p-button-secondary"><span class="pi pi-share-alt">&nbsp;</span></button>
+              </mat-card-actions>
+            </mat-card>
+            </div>
+        </div>
+</p-card>

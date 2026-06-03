@@ -1,0 +1,10 @@
+.container {
+  display: flex;
+  background-color: rgb(92, 92, 92);
+  width: 100%;
+  justify-content: center;
+}
+div h1 {
+  color: rgb(252, 92, 92);
+  font-size: 40px;
+}

@@ -1,0 +1,24 @@
+
+<p-card>
+    <div *ngIf="film" class="container-div">
+        <div class="col-75">
+            <mat-card class="example-card" style="align-items: center;">
+                <img mat-card-image src="https://image.tmdb.org/t/p/original/{{film.poster_path}}">
+                <mat-card-content>
+
+              <mat-card-title><h1>{{film.title}}</h1></mat-card-title>
+            <p>
+              {{film.overview}}
+            </p>
+          </mat-card-content>
+         
+        </mat-card>
+        </div>
+    
+        <mat-card-footer>
+            FILM WORK IN PROGRESS...
+        </mat-card-footer>
+        
+    </div>
+    </p-card>
+    
