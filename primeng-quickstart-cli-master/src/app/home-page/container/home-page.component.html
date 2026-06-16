@@ -1,29 +1,97 @@
+  <!-- HERO + SEARCH -->
+  <div class="hero-section">
+    <h1 class="hero-title"><span class="accent">Game</span>Price</h1>
+    <p class="hero-subtitle">Trova il prezzo migliore per i tuoi giochi preferiti</p>
 
-<p-card>
-<div *ngIf="film" class="container-div">
-    <div *ngFor="let film of film.results" class="col-auto mr-3 ml-3">
-        <mat-card class="example-card">
-      <mat-card-header>
-        <div mat-card-avatar></div>
-    </mat-card-header>
-    <img mat-card-image src="https://image.tmdb.org/t/p/original/{{film.poster_path}}">
-    <mat-card-content>
-          <mat-card-title><h1>{{film.title}}</h1></mat-card-title>
-        <p>
-          Visto da {{film.popularity}} persone <br>
-          <span class="pi pi-star"></span> Voto: {{film.vote_average}}/10 <span class="pi pi-star"></span><br>
-          Votato da {{film.vote_count}} persone
-        </p>
-      </mat-card-content>
-      <mat-card-actions style="justify-content: space-around; font-size: 8px;">
-        <!-- <button class="pi pi-play"></button> -->
-        <button pButton pRipple type="button" label="Watch" class="p-button-outlined p-button-secondary" (click)="goToDettaglio(film.id)"><span class="pi pi-play">&nbsp;</span></button>
-        <button pButton pRipple type="button" label="Share" class="p-button-outlined p-button-secondary"><span class="pi pi-share-alt">&nbsp;</span></button>
-      </mat-card-actions>
-    </mat-card>
+    <div class="search-bar-wrapper">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input
+          pInputText
+          type="text"
+          placeholder="Cerca un gioco... es. Cyberpunk, Elden Ring"
+          [(ngModel)]="query"
+          (keyup.enter)="searchBar(query)"
+        />
+      </span>
+      <button
+        pButton
+        pRipple
+        type="button"
+        label="Cerca"
+        icon="pi pi-search"
+        (click)="searchBar(query)"
+      ></button>
     </div>
-</div>
-<h1 *ngIf="errorMessage">{{errorMessage}}</h1>
-</p-card>
+  </div>
 
+  <!-- STATO: caricamento -->
+  <div *ngIf="loading" class="state-container">
+    <p-progressSpinner strokeWidth="4"></p-progressSpinner>
+    <p class="state-text">Ricerca in corso...</p>
+  </div>
 
+  <!-- STATO: errore -->
+  <h2 *ngIf="errorMessage && !loading" class="error-message">
+    <i class="pi pi-exclamation-triangle"></i> {{ errorMessage }}
+  </h2>
+
+  <!-- STATO: iniziale -->
+  <div *ngIf="!loading && !errorMessage && !games" class="state-container">
+    <i class="pi pi-gamepad state-icon"></i>
+    <p class="state-text">Inizia cercando un gioco</p>
+  </div>
+
+  <!-- GRIGLIA RISULTATI -->
+  <div *ngIf="games && !loading" class="container-div">
+    <div *ngFor="let game of games" class="col-auto mr-3 ml-3">
+
+      <mat-card class="example-card">
+
+        <mat-card-header>
+          <mat-card-title>{{ game.title }}</mat-card-title>
+          <mat-card-subtitle>{{ getStoreName(game.storeID) }}</mat-card-subtitle>
+        </mat-card-header>
+
+        <img mat-card-image [src]="game.thumb" [alt]="game.title" (error)="onImageError($event)" />
+
+        <mat-card-content>
+          <div class="price-row">
+            <span *ngIf="game.normalPrice !== game.salePrice" class="price-original">
+              €{{ game.normalPrice }}
+            </span>
+            <span class="price-sale">€{{ game.salePrice }}</span>
+            <span *ngIf="+game.savings > 0" class="discount-badge">
+              -{{ game.savings | number:'1.0-0' }}%
+            </span>
+          </div>
+
+          <p *ngIf="+game.metacriticScore > 0" class="metacritic">
+            <span class="pi pi-star"></span> Metacritic: {{ game.metacriticScore }}/100
+          </p>
+        </mat-card-content>
+
+        <mat-card-actions style="justify-content: space-around;">
+          <button
+            pButton
+            pRipple
+            type="button"
+            label="Vai all'offerta"
+            icon="pi pi-external-link"
+            class="p-button-outlined p-button-secondary"
+            (click)="goToDeal(game.dealID)"
+          ></button>
+          <button
+            pButton
+            pRipple
+            type="button"
+            icon="pi pi-heart"
+            class="p-button-outlined p-button-danger"
+            pTooltip="Aggiungi ai preferiti"
+            (click)="toggleWishlist(game.gameID)"
+          ></button>
+        </mat-card-actions>
+
+      </mat-card>
+    </div>
+  </div>

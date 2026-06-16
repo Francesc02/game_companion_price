@@ -9,6 +9,8 @@ import { OAuth2Client } from 'google-auth-library';
 })
 
 export class ChiamateAPIService {
+ 
+ 
   constructor(public httpClient: HttpClient) {}
   apiKey = 'api_key=3bbdef2bd5b89192e8dc5daf7ec7702d';
   language = 'language=it-IT';
@@ -17,26 +19,17 @@ export class ChiamateAPIService {
 // Configura le credenziali
 
 
-  getFilm(): Observable<any> {
-    // return this.httpClient.get<any>(`https://api.themoviedb.org/3/movie/11?api_key=3bbdef2bd5b89192e8dc5daf7ec7702d`);
-    return this.httpClient.get<any>(
-      `https://api.themoviedb.org/3/discover/movie?` +
-        this.apiKey +
-        '&' +
-        this.language
-    );
-  }
+  getDeals(): Observable<any[]> {
+  return this.httpClient.get<any[]>('https://www.cheapshark.com/api/1.0/deals', {
+    params: { pageSize: '20', sortBy: 'Savings' }
+  });
+}
 
-  searchFilm(query: string): Observable<any> {
-    return this.httpClient.get<any>(
-      `https://api.themoviedb.org/3/search/movie?query=` +
-        query +
-        '&' +
-        this.apiKey +
-        '&' +
-        this.language
-    );
-  }
+  searchGame(query: string): Observable<any[]> {
+  return this.httpClient.get<any[]>('https://www.cheapshark.com/api/1.0/deals', {
+    params: { title: query, pageSize: '20' }
+  });
+}
   searchGeneri(idGenere:string): Observable<any>{
     return this.httpClient.get<any>(
       `https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&` + this.apiKey + `&language=it&page=1&sort_by=popularity.desc&with_genres=`+idGenere
@@ -52,3 +45,5 @@ export class ChiamateAPIService {
     return this.httpClient.get<any>(`https://api.themoviedb.org/3/movie/`+ id + '?' + this.apiKey + '&' + this.language);
   }
 }
+
+
