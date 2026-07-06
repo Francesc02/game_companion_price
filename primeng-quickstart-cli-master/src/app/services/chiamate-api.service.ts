@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { forkJoin, map, Observable } from 'rxjs';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 
@@ -20,9 +20,27 @@ export class ChiamateAPIService {
 
 
   getDeals(): Observable<any[]> {
-  return this.httpClient.get<any[]>('https://www.cheapshark.com/api/1.0/deals', {
-    params: { pageSize: '20', sortBy: 'Savings' }
-  });
+  // ID dei giochi più famosi su CheapShark
+  const famousGameIDs = [
+    '146825', // Cyberpunk 2077
+    '226320', // Elden Ring  
+    '1091500', // Cyberpunk (Steam ID alternativo)
+    '292030', // The Witcher 3
+    '1245620', // Elden Ring
+    '1593500', // God of War
+    '1817070', // Hogwarts Legacy
+    '1938090', // Call of Duty
+  ];
+
+  const requests = famousGameIDs.map(id =>
+    this.httpClient.get<any[]>(`https://www.cheapshark.com/api/1.0/deals`, {
+      params: { steamAppID: id, pageSize: '1' }
+    })
+  );
+
+  return forkJoin(requests).pipe(
+    map((results: any[][]) => results.flat().filter(g => g))
+  );
 }
 
   searchGame(query: string): Observable<any[]> {
