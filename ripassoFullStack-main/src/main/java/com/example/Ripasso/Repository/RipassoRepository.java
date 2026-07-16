@@ -13,12 +13,12 @@ import org.springframework.stereotype.Repository;
 import com.example.Ripasso.Service.RipassoService;
 
 @Repository
-public class RipassoRepository {
+public class ripassoRepository {
 	private final JdbcTemplate jdbcTemplate;
 	private static final Logger logger = LoggerFactory.getLogger(RipassoService.class);
 
 	@Autowired
-	public RipassoRepository(JdbcTemplate jdbcTemplate) {
+	public ripassoRepository(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 	}
 

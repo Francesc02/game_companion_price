@@ -17,12 +17,12 @@ import com.example.Ripasso.Service.RipassoService;
 
 @RestController
 @RequestMapping("api/")
-public class RipassoController {
+public class ripassoController {
 	
 	@Autowired 
 	private RipassoService ripassoService;
 	
-	private static final Logger logger = LoggerFactory.getLogger(RipassoController.class);
+	private static final Logger logger = LoggerFactory.getLogger(ripassoController.class);
 
 	
 	
