@@ -4,11 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ripassoApplication {
+public class RipassoApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(ripassoApplication.class, args);
-		
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(RipassoApplication.class, args);
+    }
 }
