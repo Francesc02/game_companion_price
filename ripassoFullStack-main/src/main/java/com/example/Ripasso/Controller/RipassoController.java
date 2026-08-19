@@ -6,8 +6,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
-public class ripassoController {
-    @GetMapping("error")
+public class RipassoController {
+
+    @GetMapping("/error")
     public String error() {
         return "sei andato in errore e non c'è nulla da vedere qui";
     }
