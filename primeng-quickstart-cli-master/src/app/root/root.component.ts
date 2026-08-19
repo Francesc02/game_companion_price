@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ChiamateAPIService } from '../services/chiamate-api.service';
 
@@ -13,6 +13,7 @@ interface CheapSharkDeal {
   metacriticScore?: string;
   storeID: string;
   steamAppID?: string;
+  dealRating?: string;
 }
 
 interface RootGame {
@@ -31,13 +32,14 @@ interface RootGame {
   templateUrl: './root.component.html',
   styleUrls: ['./root.component.css']
 })
-export class RootComponent {
+export class RootComponent implements OnInit {
   wishlist = new Set<string>();
   query = '';
   errorMessage: string | null = null;
   loading = false;
   hasSearched = false;
 
+  // Nessun gioco hardcoded: la home viene popolata dalla API a ogni accesso.
   games: RootGame[] = [];
 
   private readonly storeNames: { [key: string]: string } = {
@@ -59,6 +61,37 @@ export class RootComponent {
     public route: ActivatedRoute,
     public router: Router
   ) {}
+
+  ngOnInit(): void {
+    this.loadHomeDeals();
+  }
+
+  /**
+   * Carica ogni volta i migliori giochi attualmente in saldo.
+   * La lista arriva direttamente da CheapShark e non contiene dati fissi.
+   */
+  private loadHomeDeals(): void {
+    this.loading = true;
+    this.errorMessage = null;
+    this.hasSearched = false;
+
+    this.chiamateApi.getDeals().subscribe({
+      next: (results: CheapSharkDeal[]) => {
+        console.log('Migliori offerte home:', results);
+        this.games = this.buildUniqueGames(results);
+        this.loading = false;
+
+        if (this.games.length === 0) {
+          this.errorMessage = 'Non sono riuscito a trovare offerte disponibili.';
+        }
+      },
+      error: (error) => {
+        console.error('Errore caricamento offerte home:', error);
+        this.errorMessage = 'Impossibile caricare le offerte. Riprova più tardi.';
+        this.loading = false;
+      }
+    });
+  }
 
   search(): void {
     const searchQuery = this.query.trim();
@@ -109,29 +142,25 @@ export class RootComponent {
         ? Number.parseFloat(existing.salePrice)
         : Number.POSITIVE_INFINITY;
 
-      // La ricerca CheapShark restituisce una riga per ogni offerta/store.
-      // La home mostra invece una card per gioco, usando l'offerta più economica.
+      // Una card rappresenta un gioco, non una singola offerta/store.
+      // Tra più store dello stesso gioco mostriamo il prezzo migliore.
       if (!existing || currentPrice < existingPrice) {
         uniqueGames.set(deal.gameID, deal);
       }
     }
 
     return Array.from(uniqueGames.values())
-      .sort((a, b) => Number.parseFloat(a.salePrice) - Number.parseFloat(b.salePrice))
-      .slice(0, 20)
+      .sort((a, b) => Number.parseFloat(b.savings) - Number.parseFloat(a.savings))
+      .slice(0, 12)
       .map(deal => this.toRootGame(deal));
   }
 
   private toRootGame(deal: CheapSharkDeal): RootGame {
-    const image = deal.steamAppID
-      ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${deal.steamAppID}/header.jpg`
-      : deal.thumb;
-
     return {
       gameID: deal.gameID,
       dealID: deal.dealID,
       title: deal.title,
-      image,
+      image: deal.thumb,
       price: deal.salePrice,
       oldPrice: deal.normalPrice,
       discount: Math.round(Number.parseFloat(deal.savings || '0')) + '%',
