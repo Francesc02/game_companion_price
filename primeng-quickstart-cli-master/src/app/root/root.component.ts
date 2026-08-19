@@ -39,7 +39,7 @@ export class RootComponent implements OnInit {
   loading = false;
   hasSearched = false;
 
-  // Nessun gioco hardcoded: la home viene popolata dalla API a ogni accesso.
+  // La home non contiene giochi fissi: viene popolata dalla API ad ogni accesso.
   games: RootGame[] = [];
 
   private readonly storeNames: { [key: string]: string } = {
@@ -66,10 +66,6 @@ export class RootComponent implements OnInit {
     this.loadHomeDeals();
   }
 
-  /**
-   * Carica ogni volta i migliori giochi attualmente in saldo.
-   * La lista arriva direttamente da CheapShark e non contiene dati fissi.
-   */
   private loadHomeDeals(): void {
     this.loading = true;
     this.errorMessage = null;
@@ -77,12 +73,12 @@ export class RootComponent implements OnInit {
 
     this.chiamateApi.getDeals().subscribe({
       next: (results: CheapSharkDeal[]) => {
-        console.log('Migliori offerte home:', results);
+        console.log('Top giochi in offerta:', results);
         this.games = this.buildUniqueGames(results);
         this.loading = false;
 
         if (this.games.length === 0) {
-          this.errorMessage = 'Non sono riuscito a trovare offerte disponibili.';
+          this.errorMessage = 'Non sono riuscito a trovare giochi popolari attualmente in offerta.';
         }
       },
       error: (error) => {
@@ -112,7 +108,6 @@ export class RootComponent implements OnInit {
     this.chiamateApi.searchGame(searchQuery).subscribe({
       next: (results: CheapSharkDeal[]) => {
         console.log('Risultati CheapShark:', results);
-
         this.games = this.buildUniqueGames(results);
         this.loading = false;
 
@@ -142,15 +137,17 @@ export class RootComponent implements OnInit {
         ? Number.parseFloat(existing.salePrice)
         : Number.POSITIVE_INFINITY;
 
-      // Una card rappresenta un gioco, non una singola offerta/store.
-      // Tra più store dello stesso gioco mostriamo il prezzo migliore.
+      // Una card rappresenta un gioco. Se lo stesso gioco è presente su più store,
+      // manteniamo l'offerta più economica senza alterare il ranking della API.
       if (!existing || currentPrice < existingPrice) {
         uniqueGames.set(deal.gameID, deal);
       }
     }
 
+    // L'ordine viene dalla classifica CheapShark: prima popolarità, poi qualità.
+    // Non ordiniamo più per percentuale di sconto, perché questo favorirebbe giochi
+    // sconosciuti con sconti enormi rispetto ai titoli realmente popolari.
     return Array.from(uniqueGames.values())
-      .sort((a, b) => Number.parseFloat(b.savings) - Number.parseFloat(a.savings))
       .slice(0, 12)
       .map(deal => this.toRootGame(deal));
   }
