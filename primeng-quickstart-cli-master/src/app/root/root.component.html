@@ -1,58 +1,40 @@
 <div class="app">
   <header class="navbar">
-    <a class="brand" href="#" (click)="$event.preventDefault()">
+    <a class="brand" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
       <span class="brand-icon">🎮</span>
       <span>Game Companion <b>Price</b></span>
     </a>
 
     <nav aria-label="Navigazione principale">
-      <a class="active">Home</a>
-      <a>Offerte</a>
-      <a>Wishlist</a>
-      <a>Chi siamo</a>
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+      <a routerLink="/offerte" routerLinkActive="active">Offerte</a>
+      <a routerLink="/wishlist" routerLinkActive="active">Wishlist</a>
+      <a routerLink="/contatti" routerLinkActive="active">Chi siamo</a>
     </nav>
 
     <div class="actions">
-      <button type="button">Accedi</button>
-      <button type="button" class="signup">Registrati</button>
+      <button type="button" (click)="goToLogin()">Accedi</button>
+      <button type="button" class="signup" (click)="goToRegister()">Registrati</button>
     </div>
   </header>
 
-  <main>
+  <main *ngIf="isHomeRoute()">
     <section class="hero">
       <div class="hero-content">
         <span class="eyebrow">GAME PRICE COMPANION</span>
         <h1>Trova il miglior prezzo<br><span>per i tuoi giochi.</span></h1>
         <p>Confronta le offerte, scopri nuovi giochi e trova il prezzo migliore in pochi secondi.</p>
-
         <div class="search">
           <span aria-hidden="true">⌕</span>
-          <input
-            type="search"
-            [(ngModel)]="query"
-            placeholder="Cerca un gioco..."
-            aria-label="Cerca un gioco"
-            (keyup.enter)="search()"
-          />
+          <input type="search" [(ngModel)]="query" placeholder="Cerca un gioco..." aria-label="Cerca un gioco" (keyup.enter)="search()" />
           <button type="button" (click)="search()">Cerca</button>
         </div>
-
         <p class="search-status" *ngIf="loading">Cerco le migliori offerte...</p>
         <p class="search-status error" *ngIf="errorMessage">{{ errorMessage }}</p>
-
         <div class="points">
-          <div>
-            <b>✓</b>
-            <span><strong>Confronta prezzi</strong><small>Più store in un unico posto</small></span>
-          </div>
-          <div>
-            <b>%</b>
-            <span><strong>Scopri le offerte</strong><small>Trova gli sconti migliori</small></span>
-          </div>
-          <div>
-            <b>♡</b>
-            <span><strong>Salva i tuoi giochi</strong><small>Crea la tua wishlist</small></span>
-          </div>
+          <div><b>✓</b><span><strong>Confronta prezzi</strong><small>Più store in un unico posto</small></span></div>
+          <div><b>%</b><span><strong>Scopri le offerte</strong><small>Trova gli sconti migliori</small></span></div>
+          <div><b>♡</b><span><strong>Salva i tuoi giochi</strong><small>Crea la tua wishlist</small></span></div>
         </div>
       </div>
     </section>
@@ -65,55 +47,34 @@
           <p *ngIf="!hasSearched">I giochi più interessanti del momento.</p>
           <p *ngIf="hasSearched && !loading">Offerte uniche, ordinate dal prezzo più conveniente.</p>
         </div>
-        <button type="button" class="link-btn">Vedi tutte →</button>
+        <button type="button" class="link-btn" (click)="goToOffers()">Vedi tutte →</button>
       </div>
 
       <div class="grid" *ngIf="games.length > 0">
         <article class="card" *ngFor="let game of games">
           <div class="cover">
-            <img
-              [src]="game.image"
-              [alt]="game.title"
-              (error)="onImageError($event)"
-            />
+            <img [src]="game.image" [alt]="game.title" (error)="onImageError($event)" />
             <span class="discount">-{{ game.discount }}</span>
-            <button
-              type="button"
-              class="heart"
-              [attr.aria-label]="isWishlisted(game.gameID) ? 'Rimuovi dalla wishlist' : 'Aggiungi alla wishlist'"
-              (click)="toggleWishlist(game.gameID)"
-            >
+            <button type="button" class="heart" [attr.aria-label]="isWishlisted(game.gameID) ? 'Rimuovi dalla wishlist' : 'Aggiungi alla wishlist'" (click)="toggleWishlist(game.gameID)">
               {{ isWishlisted(game.gameID) ? '♥' : '♡' }}
             </button>
           </div>
-
           <div class="body">
             <h3>{{ game.title }}</h3>
             <span class="store">{{ game.store }} · PC</span>
-            <div class="price">
-              <strong>€ {{ game.price }}</strong>
-              <del>€ {{ game.oldPrice }}</del>
-            </div>
+            <div class="price"><strong>€ {{ game.price }}</strong><del>€ {{ game.oldPrice }}</del></div>
             <button type="button" class="deal" (click)="goToDeal(game.dealID)">Vedi offerta</button>
           </div>
         </article>
       </div>
 
       <div class="empty-state" *ngIf="!loading && games.length === 0 && errorMessage">
-        <span>🎮</span>
-        <h3>Nessun risultato</h3>
-        <p>Prova con il titolo completo oppure con un altro gioco.</p>
+        <span>🎮</span><h3>Nessun risultato</h3><p>Prova con il titolo completo oppure con un altro gioco.</p>
       </div>
     </section>
 
     <section class="section how">
-      <div class="section-head">
-        <div>
-          <span class="kicker">COME FUNZIONA</span>
-          <h2>Un confronto semplice</h2>
-        </div>
-      </div>
-
+      <div class="section-head"><div><span class="kicker">COME FUNZIONA</span><h2>Un confronto semplice</h2></div></div>
       <div class="features">
         <div><span>01</span><h3>Cerca</h3><p>Inserisci il gioco che stai cercando.</p></div>
         <div><span>02</span><h3>Confronta</h3><p>Mettiamo a confronto prezzi e sconti.</p></div>
@@ -122,8 +83,9 @@
     </section>
   </main>
 
+  <router-outlet *ngIf="!isHomeRoute()"></router-outlet>
+
   <footer>
-    <span>🎮 Game Companion Price</span>
-    <span>Confronta. Risparmia. Gioca.</span>
+    <span>🎮 Game Companion Price</span><span>Confronta. Risparmia. Gioca.</span>
   </footer>
 </div>
