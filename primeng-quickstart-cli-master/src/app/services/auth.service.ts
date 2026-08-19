@@ -15,19 +15,31 @@ export interface AuthResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiUrl = 'http://localhost:8080/api/auth';
+  // Il FE online deve chiamare il BE pubblico Railway.
+  // Per lo sviluppo locale Angular continua a usare il BE su localhost.
+  private readonly apiUrl = window.location.hostname === 'localhost'
+    ? 'http://localhost:8080/api/auth'
+    : 'https://back-end-production-50e6.up.railway.app/api/auth';
 
   constructor(private readonly http: HttpClient) {}
 
   register(request: AuthRequest): Observable<AuthResponse> {
+    console.log('[Auth] REGISTER ->', `${this.apiUrl}/register`, request.username);
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, request).pipe(
-      tap(response => this.saveSession(response))
+      tap(response => {
+        console.log('[Auth] REGISTER OK', response);
+        this.saveSession(response);
+      })
     );
   }
 
   login(request: AuthRequest): Observable<AuthResponse> {
+    console.log('[Auth] LOGIN ->', `${this.apiUrl}/login`, request.username);
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, request).pipe(
-      tap(response => this.saveSession(response))
+      tap(response => {
+        console.log('[Auth] LOGIN OK', response);
+        this.saveSession(response);
+      })
     );
   }
 
