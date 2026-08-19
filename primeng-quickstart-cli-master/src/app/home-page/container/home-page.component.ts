@@ -57,6 +57,7 @@ export class HomePageComponent implements OnInit {
     this.loading = true;
     this.errorMessage = null;
     this.games = null;
+    console.log(query);
 
     this.chiamateApi.searchGame(query).subscribe({
       next: (results: GameDeal[]) => {
@@ -69,6 +70,7 @@ export class HomePageComponent implements OnInit {
       },
       error: () => {
         this.errorMessage = 'Errore durante la ricerca. Riprova più tardi.';
+        console.log(this.errorMessage)
         this.loading = false;
       }
     });
@@ -78,6 +80,7 @@ export class HomePageComponent implements OnInit {
     this.loading = true;
     this.chiamateApi.getDeals().subscribe({
       next: (results: GameDeal[]) => {
+        console.log(results)
         this.games = results;
         this.loading = false;
       },

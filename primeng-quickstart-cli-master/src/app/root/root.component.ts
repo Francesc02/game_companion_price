@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { ChiamateAPIService } from '../services/chiamate-api.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 interface RootGame {
   title: string;
@@ -8,6 +10,18 @@ interface RootGame {
   discount: string;
   store: string;
 }
+interface GameDeal {
+  gameID: string;
+  dealID: string;
+  title: string;
+  thumb: string;
+  salePrice: string;
+  normalPrice: string;
+  savings: string;
+  metacriticScore: string;
+  storeID: string;
+}
+
 
 @Component({
   selector: 'app-root',
@@ -15,8 +29,16 @@ interface RootGame {
   styleUrls: ['./root.component.css']
 })
 export class RootComponent {
-  query = '';
   wishlist = new Set<string>();
+  query: string | undefined;
+  errorMessage: string | null = null;
+  loading: boolean = false;
+   
+  constructor(
+      public chiamateApi: ChiamateAPIService,
+      public route: ActivatedRoute,
+      public router: Router
+    ) {}
 
   games: RootGame[] = [
     {
@@ -55,6 +77,22 @@ export class RootComponent {
 
   search(): void {
     console.log('Search:', this.query.trim());
+
+    this.chiamateApi.searchGame(query).subscribe({
+      next: (results: GameDeal[]) => {
+        this.games = results;
+        console.log(results);
+        this.loading = false;
+        if (results.length === 0) {
+          this.errorMessage = 'Nessun gioco trovato per "' + query + '"';
+        }
+      },
+      error: () => {
+        this.errorMessage = 'Errore durante la ricerca. Riprova più tardi.';
+        console.log(this.errorMessage)
+        this.loading = false;
+      }
+    });
   }
 
   toggleWishlist(title: string): void {
