@@ -2,19 +2,7 @@ import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ChiamateAPIService } from '../services/chiamate-api.service';
 
-interface RootGame {
-  title: string;
-  image: string;
-  price: string;
-  oldPrice: string;
-  discount: string;
-  store: string;
-  gameID?: string;
-  dealID?: string;
-  storeID?: string;
-}
-
-interface GameDeal {
+interface CheapSharkDeal {
   gameID: string;
   dealID: string;
   title: string;
@@ -22,8 +10,20 @@ interface GameDeal {
   salePrice: string;
   normalPrice: string;
   savings: string;
-  metacriticScore: string;
+  metacriticScore?: string;
   storeID: string;
+  steamAppID?: string;
+}
+
+interface RootGame {
+  gameID: string;
+  dealID: string;
+  title: string;
+  image: string;
+  price: string;
+  oldPrice: string;
+  discount: string;
+  store: string;
 }
 
 @Component({
@@ -36,43 +36,11 @@ export class RootComponent {
   query = '';
   errorMessage: string | null = null;
   loading = false;
+  hasSearched = false;
 
-  games: RootGame[] = [
-    {
-      title: 'Elden Ring',
-      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/header.jpg',
-      price: '29,99',
-      oldPrice: '59,99',
-      discount: '50%',
-      store: 'Steam'
-    },
-    {
-      title: "Baldur's Gate 3",
-      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1086940/header.jpg',
-      price: '39,99',
-      oldPrice: '59,99',
-      discount: '33%',
-      store: 'Steam'
-    },
-    {
-      title: 'Hogwarts Legacy',
-      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/990080/header.jpg',
-      price: '24,99',
-      oldPrice: '59,99',
-      discount: '58%',
-      store: 'Epic Games'
-    },
-    {
-      title: 'Cyberpunk 2077',
-      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/header.jpg',
-      price: '19,99',
-      oldPrice: '59,99',
-      discount: '67%',
-      store: 'GOG'
-    }
-  ];
+  games: RootGame[] = [];
 
-  private storeNames: { [key: string]: string } = {
+  private readonly storeNames: { [key: string]: string } = {
     '1': 'Steam',
     '2': 'GamersGate',
     '3': 'GreenManGaming',
@@ -100,32 +68,24 @@ export class RootComponent {
       return;
     }
 
+    this.query = searchQuery;
     this.loading = true;
+    this.hasSearched = true;
     this.errorMessage = null;
+    this.games = [];
 
     console.log('Search:', searchQuery);
 
     this.chiamateApi.searchGame(searchQuery).subscribe({
-      next: (results: GameDeal[]) => {
+      next: (results: CheapSharkDeal[]) => {
         console.log('Risultati CheapShark:', results);
 
-        this.games = results.map((game: GameDeal): RootGame => ({
-          title: game.title,
-          image: game.thumb,
-          price: game.salePrice,
-          oldPrice: game.normalPrice,
-          discount: Math.round(Number(game.savings)) + '%',
-          store: this.getStoreName(game.storeID),
-          gameID: game.gameID,
-          dealID: game.dealID,
-          storeID: game.storeID
-        }));
+        this.games = this.buildUniqueGames(results);
+        this.loading = false;
 
         if (this.games.length === 0) {
           this.errorMessage = `Nessun gioco trovato per "${searchQuery}"`;
         }
-
-        this.loading = false;
       },
       error: (error) => {
         console.error('Errore durante la ricerca:', error);
@@ -135,30 +95,74 @@ export class RootComponent {
     });
   }
 
+  private buildUniqueGames(results: CheapSharkDeal[]): RootGame[] {
+    const uniqueGames = new Map<string, CheapSharkDeal>();
+
+    for (const deal of results) {
+      if (!deal.gameID) {
+        continue;
+      }
+
+      const existing = uniqueGames.get(deal.gameID);
+      const currentPrice = Number.parseFloat(deal.salePrice);
+      const existingPrice = existing
+        ? Number.parseFloat(existing.salePrice)
+        : Number.POSITIVE_INFINITY;
+
+      // La ricerca CheapShark restituisce una riga per ogni offerta/store.
+      // La home mostra invece una card per gioco, usando l'offerta più economica.
+      if (!existing || currentPrice < existingPrice) {
+        uniqueGames.set(deal.gameID, deal);
+      }
+    }
+
+    return Array.from(uniqueGames.values())
+      .sort((a, b) => Number.parseFloat(a.salePrice) - Number.parseFloat(b.salePrice))
+      .slice(0, 20)
+      .map(deal => this.toRootGame(deal));
+  }
+
+  private toRootGame(deal: CheapSharkDeal): RootGame {
+    const image = deal.steamAppID
+      ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${deal.steamAppID}/header.jpg`
+      : deal.thumb;
+
+    return {
+      gameID: deal.gameID,
+      dealID: deal.dealID,
+      title: deal.title,
+      image,
+      price: deal.salePrice,
+      oldPrice: deal.normalPrice,
+      discount: Math.round(Number.parseFloat(deal.savings || '0')) + '%',
+      store: this.getStoreName(deal.storeID)
+    };
+  }
+
   getStoreName(storeID: string): string {
     return this.storeNames[storeID] || `Store #${storeID}`;
   }
 
-  toggleWishlist(title: string): void {
-    if (this.wishlist.has(title)) {
-      this.wishlist.delete(title);
+  toggleWishlist(gameID: string): void {
+    if (this.wishlist.has(gameID)) {
+      this.wishlist.delete(gameID);
     } else {
-      this.wishlist.add(title);
+      this.wishlist.add(gameID);
     }
   }
 
-  isWishlisted(title: string): boolean {
-    return this.wishlist.has(title);
+  isWishlisted(gameID: string): boolean {
+    return this.wishlist.has(gameID);
   }
 
-  goToDeal(dealID: string | undefined): void {
-    if (!dealID) {
-      return;
-    }
-
+  goToDeal(dealID: string): void {
     window.open(
       `https://www.cheapshark.com/redirect?dealID=${dealID}`,
       '_blank'
     );
+  }
+
+  onImageError(event: Event): void {
+    (event.target as HTMLImageElement).src = 'assets/images/no-cover.png';
   }
 }
