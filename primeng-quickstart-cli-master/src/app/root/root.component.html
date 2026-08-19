@@ -1,0 +1,115 @@
+<div class="app">
+  <header class="navbar">
+    <a class="brand" href="#" (click)="$event.preventDefault()">
+      <span class="brand-icon">🎮</span>
+      <span>Game Companion <b>Price</b></span>
+    </a>
+
+    <nav aria-label="Navigazione principale">
+      <a class="active">Home</a>
+      <a>Offerte</a>
+      <a>Wishlist</a>
+      <a>Chi siamo</a>
+    </nav>
+
+    <div class="actions">
+      <button type="button">Accedi</button>
+      <button type="button" class="signup">Registrati</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <span class="eyebrow">GAME PRICE COMPANION</span>
+        <h1>Trova il miglior prezzo<br><span>per i tuoi giochi.</span></h1>
+        <p>Confronta le offerte, scopri nuovi giochi e trova il prezzo migliore in pochi secondi.</p>
+
+        <div class="search">
+          <span aria-hidden="true">⌕</span>
+          <input
+            type="search"
+            [(ngModel)]="query"
+            placeholder="Cerca un gioco..."
+            aria-label="Cerca un gioco"
+            (keyup.enter)="search()"
+          />
+          <button type="button" (click)="search()">Cerca</button>
+        </div>
+
+        <div class="points">
+          <div>
+            <b>✓</b>
+            <span><strong>Confronta prezzi</strong><small>Più store in un unico posto</small></span>
+          </div>
+          <div>
+            <b>%</b>
+            <span><strong>Scopri le offerte</strong><small>Trova gli sconti migliori</small></span>
+          </div>
+          <div>
+            <b>♡</b>
+            <span><strong>Salva i tuoi giochi</strong><small>Crea la tua wishlist</small></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <span class="kicker">IN EVIDENZA</span>
+          <h2>Offerte che meritano attenzione</h2>
+          <p>I giochi più interessanti del momento.</p>
+        </div>
+        <button type="button" class="link-btn">Vedi tutte →</button>
+      </div>
+
+      <div class="grid">
+        <article class="card" *ngFor="let game of games">
+          <div class="cover">
+            <img [src]="game.image" [alt]="game.title" />
+            <span class="discount">-{{ game.discount }}</span>
+            <button
+              type="button"
+              class="heart"
+              [attr.aria-label]="isWishlisted(game.title) ? 'Rimuovi dalla wishlist' : 'Aggiungi alla wishlist'"
+              (click)="toggleWishlist(game.title)"
+            >
+              {{ isWishlisted(game.title) ? '♥' : '♡' }}
+            </button>
+          </div>
+
+          <div class="body">
+            <h3>{{ game.title }}</h3>
+            <span class="store">{{ game.store }} · PC</span>
+            <div class="price">
+              <strong>€ {{ game.price }}</strong>
+              <del>€ {{ game.oldPrice }}</del>
+            </div>
+            <button type="button" class="deal">Vedi offerta</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section how">
+      <div class="section-head">
+        <div>
+          <span class="kicker">COME FUNZIONA</span>
+          <h2>Un confronto semplice</h2>
+        </div>
+      </div>
+
+      <div class="features">
+        <div><span>01</span><h3>Cerca</h3><p>Inserisci il gioco che stai cercando.</p></div>
+        <div><span>02</span><h3>Confronta</h3><p>Mettiamo a confronto prezzi e sconti.</p></div>
+        <div><span>03</span><h3>Risparmia</h3><p>Scegli l'offerta più conveniente.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>🎮 Game Companion Price</span>
+    <span>Confronta. Risparmia. Gioca.</span>
+  </footer>
+</div>
