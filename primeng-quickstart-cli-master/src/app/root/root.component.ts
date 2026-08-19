@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { ChiamateAPIService } from '../services/chiamate-api.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ChiamateAPIService } from '../services/chiamate-api.service';
 
 interface RootGame {
   title: string;
@@ -9,7 +9,11 @@ interface RootGame {
   oldPrice: string;
   discount: string;
   store: string;
+  gameID?: string;
+  dealID?: string;
+  storeID?: string;
 }
+
 interface GameDeal {
   gameID: string;
   dealID: string;
@@ -22,7 +26,6 @@ interface GameDeal {
   storeID: string;
 }
 
-
 @Component({
   selector: 'app-root',
   templateUrl: './root.component.html',
@@ -30,15 +33,9 @@ interface GameDeal {
 })
 export class RootComponent {
   wishlist = new Set<string>();
-  query: string | undefined;
+  query = '';
   errorMessage: string | null = null;
-  loading: boolean = false;
-   
-  constructor(
-      public chiamateApi: ChiamateAPIService,
-      public route: ActivatedRoute,
-      public router: Router
-    ) {}
+  loading = false;
 
   games: RootGame[] = [
     {
@@ -75,24 +72,71 @@ export class RootComponent {
     }
   ];
 
-  search(): void {
-    console.log('Search:', this.query.trim());
+  private storeNames: { [key: string]: string } = {
+    '1': 'Steam',
+    '2': 'GamersGate',
+    '3': 'GreenManGaming',
+    '7': 'GOG',
+    '8': 'Origin',
+    '11': 'Humble Store',
+    '13': 'Uplay',
+    '15': 'Fanatical',
+    '25': 'Epic Games',
+    '29': 'IndieGala',
+    '30': 'Blizzard'
+  };
 
-    this.chiamateApi.searchGame(query).subscribe({
+  constructor(
+    private chiamateApi: ChiamateAPIService,
+    public route: ActivatedRoute,
+    public router: Router
+  ) {}
+
+  search(): void {
+    const searchQuery = this.query.trim();
+
+    if (!searchQuery) {
+      this.errorMessage = 'Inserisci il nome di un gioco.';
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = null;
+
+    console.log('Search:', searchQuery);
+
+    this.chiamateApi.searchGame(searchQuery).subscribe({
       next: (results: GameDeal[]) => {
-        this.games = results;
-        console.log(results);
-        this.loading = false;
-        if (results.length === 0) {
-          this.errorMessage = 'Nessun gioco trovato per "' + query + '"';
+        console.log('Risultati CheapShark:', results);
+
+        this.games = results.map((game: GameDeal): RootGame => ({
+          title: game.title,
+          image: game.thumb,
+          price: game.salePrice,
+          oldPrice: game.normalPrice,
+          discount: Math.round(Number(game.savings)) + '%',
+          store: this.getStoreName(game.storeID),
+          gameID: game.gameID,
+          dealID: game.dealID,
+          storeID: game.storeID
+        }));
+
+        if (this.games.length === 0) {
+          this.errorMessage = `Nessun gioco trovato per "${searchQuery}"`;
         }
+
+        this.loading = false;
       },
-      error: () => {
+      error: (error) => {
+        console.error('Errore durante la ricerca:', error);
         this.errorMessage = 'Errore durante la ricerca. Riprova più tardi.';
-        console.log(this.errorMessage)
         this.loading = false;
       }
     });
+  }
+
+  getStoreName(storeID: string): string {
+    return this.storeNames[storeID] || `Store #${storeID}`;
   }
 
   toggleWishlist(title: string): void {
@@ -105,5 +149,16 @@ export class RootComponent {
 
   isWishlisted(title: string): boolean {
     return this.wishlist.has(title);
+  }
+
+  goToDeal(dealID: string | undefined): void {
+    if (!dealID) {
+      return;
+    }
+
+    window.open(
+      `https://www.cheapshark.com/redirect?dealID=${dealID}`,
+      '_blank'
+    );
   }
 }
