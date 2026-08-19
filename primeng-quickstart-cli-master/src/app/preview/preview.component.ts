@@ -10,7 +10,7 @@ interface PreviewGame {
 }
 
 @Component({
-  selector: 'app-preview',
+  selector: 'app-root',
   template: `
     <div class="app">
       <header class="navbar">
