@@ -1,4 +1,4 @@
-import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { MatCardModule } from '@angular/material/card';
@@ -10,16 +10,16 @@ import { DettaglioComponent } from './dettaglio/dettaglio.component';
 import { ContattiComponent } from './contatti/contatti.component';
 import { GeneriComponent } from './generi/generi.component';
 import { SharedModule } from './shared/shared.module';
-import { PreviewComponent } from './preview/preview.component';
+import { RootComponent } from './root/root.component';
 
 @NgModule({
   declarations: [
+    RootComponent,
     HeaderComponent,
     HomePageComponent,
     DettaglioComponent,
     ContattiComponent,
-    GeneriComponent,
-    PreviewComponent
+    GeneriComponent
   ],
   imports: [
     SharedModule,
@@ -27,12 +27,11 @@ import { PreviewComponent } from './preview/preview.component';
     FormsModule,
     AppRoutingModule
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [
     ConfirmationService,
     MessageService,
-    ProductService,
+    ProductService
   ],
-  bootstrap: [PreviewComponent],
+  bootstrap: [RootComponent]
 })
 export class AppModule {}
