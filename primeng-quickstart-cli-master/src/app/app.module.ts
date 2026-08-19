@@ -1,9 +1,7 @@
-import { BrowserModule } from '@angular/platform-browser';
 import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { MatCardModule } from '@angular/material/card';
-import { AppComponent } from './app.component';
 import { HeaderComponent } from './header/header.component';
 import { HomePageComponent } from './home-page/container/home-page.component';
 import { AppRoutingModule } from './app.routing.module';
@@ -16,7 +14,6 @@ import { PreviewComponent } from './preview/preview.component';
 
 @NgModule({
   declarations: [
-    AppComponent,
     HeaderComponent,
     HomePageComponent,
     DettaglioComponent,
