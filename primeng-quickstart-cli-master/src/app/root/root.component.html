@@ -37,6 +37,9 @@
           <button type="button" (click)="search()">Cerca</button>
         </div>
 
+        <p class="search-status" *ngIf="loading">Cerco le migliori offerte...</p>
+        <p class="search-status error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
         <div class="points">
           <div>
             <b>✓</b>
@@ -57,25 +60,30 @@
     <section class="section">
       <div class="section-head">
         <div>
-          <span class="kicker">IN EVIDENZA</span>
-          <h2>Offerte che meritano attenzione</h2>
-          <p>I giochi più interessanti del momento.</p>
+          <span class="kicker">{{ hasSearched ? 'RISULTATI RICERCA' : 'IN EVIDENZA' }}</span>
+          <h2>{{ hasSearched ? 'Giochi trovati' : 'Offerte che meritano attenzione' }}</h2>
+          <p *ngIf="!hasSearched">I giochi più interessanti del momento.</p>
+          <p *ngIf="hasSearched && !loading">Offerte uniche, ordinate dal prezzo più conveniente.</p>
         </div>
         <button type="button" class="link-btn">Vedi tutte →</button>
       </div>
 
-      <div class="grid">
+      <div class="grid" *ngIf="games.length > 0">
         <article class="card" *ngFor="let game of games">
           <div class="cover">
-            <img [src]="game.image" [alt]="game.title" />
+            <img
+              [src]="game.image"
+              [alt]="game.title"
+              (error)="onImageError($event)"
+            />
             <span class="discount">-{{ game.discount }}</span>
             <button
               type="button"
               class="heart"
-              [attr.aria-label]="isWishlisted(game.title) ? 'Rimuovi dalla wishlist' : 'Aggiungi alla wishlist'"
-              (click)="toggleWishlist(game.title)"
+              [attr.aria-label]="isWishlisted(game.gameID) ? 'Rimuovi dalla wishlist' : 'Aggiungi alla wishlist'"
+              (click)="toggleWishlist(game.gameID)"
             >
-              {{ isWishlisted(game.title) ? '♥' : '♡' }}
+              {{ isWishlisted(game.gameID) ? '♥' : '♡' }}
             </button>
           </div>
 
@@ -86,9 +94,15 @@
               <strong>€ {{ game.price }}</strong>
               <del>€ {{ game.oldPrice }}</del>
             </div>
-            <button type="button" class="deal">Vedi offerta</button>
+            <button type="button" class="deal" (click)="goToDeal(game.dealID)">Vedi offerta</button>
           </div>
         </article>
+      </div>
+
+      <div class="empty-state" *ngIf="!loading && games.length === 0 && errorMessage">
+        <span>🎮</span>
+        <h3>Nessun risultato</h3>
+        <p>Prova con il titolo completo oppure con un altro gioco.</p>
       </div>
     </section>
 
