@@ -62,5 +62,7 @@ export class RootComponent implements OnInit {
   goToOffers():void{this.router.navigate(['/offerte']);}
   goToLogin():void{this.router.navigate(['/login']);}
   goToRegister():void{this.router.navigate(['/registrati']);}
+  goToWishlist():void{this.router.navigate(['/wishlist']);}
+  goToContatti():void{this.router.navigate(['/contatti']);}
   onImageError(event:Event):void{(event.target as HTMLImageElement).src='assets/images/no-cover.png';}
 }
