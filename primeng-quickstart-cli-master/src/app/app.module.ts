@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
 import { HeaderComponent } from './header/header.component';
 import { HomePageComponent } from './home-page/container/home-page.component';
@@ -14,8 +15,8 @@ import { WishlistComponent } from './pages/wishlist/wishlist.component';
 import { AuthComponent } from './pages/auth/auth.component';
 
 @NgModule({
-  declarations: [RootComponent,HeaderComponent,HomePageComponent,DettaglioComponent,ContattiComponent,GeneriComponent,OfferteComponent,WishlistComponent,AuthComponent],
-  imports: [SharedModule,MatCardModule,FormsModule,AppRoutingModule],
+  declarations: [RootComponent, HeaderComponent, HomePageComponent, DettaglioComponent, ContattiComponent, GeneriComponent, OfferteComponent, WishlistComponent, AuthComponent],
+  imports: [SharedModule, MatCardModule, FormsModule, HttpClientModule, AppRoutingModule],
   bootstrap: [RootComponent]
 })
 export class AppModule {}
