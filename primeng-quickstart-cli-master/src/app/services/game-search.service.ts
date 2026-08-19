@@ -1,44 +1,74 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, switchMap, map } from 'rxjs';
+import { Observable, map, switchMap, of } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class GameSearchService {
+  private readonly api = 'https://www.cheapshark.com/api/1.0';
+
   constructor(private http: HttpClient) {}
 
   search(query: string): Observable<any[]> {
     const normalized = this.normalize(query);
 
-    return this.http.get<any[]>('https://www.cheapshark.com/api/1.0/games', {
+    return this.http.get<any[]>(`${this.api}/games`, {
       params: { title: normalized, limit: '25' }
     }).pipe(
       switchMap(games => {
-        if (!games.length) return this.fallback(normalized);
+        if (!games?.length) {
+          return this.searchDeals(normalized);
+        }
 
-        const ids = games.map(game => game?.gameID).filter(Boolean).slice(0, 25).join(',');
-        return this.lookupGames(ids);
+        const ids = games
+          .map(game => game?.gameID)
+          .filter(Boolean)
+          .slice(0, 25)
+          .join(',');
+
+        if (!ids) return of([]);
+
+        return this.http.get<any>(`${this.api}/games`, {
+          params: { ids, format: 'array' }
+        }).pipe(
+          map(response => this.mapGameLookupResponse(response))
+        );
       })
     );
   }
 
-  private lookupGames(ids: string): Observable<any[]> {
-    return this.http.get<any[]>('https://www.cheapshark.com/api/1.0/games', {
-      params: { ids, format: 'array' }
-    }).pipe(
-      map(games => games.flatMap(game => {
-        const deals = Array.isArray(game?.deals) ? game.deals : [];
-        return deals.map((deal: any) => ({
-          ...deal,
-          gameID: game.gameID,
-          title: game.info?.title || game.name,
-          thumb: game.info?.thumb || game.thumb,
-          steamAppID: game.info?.steamAppID || game.steamAppID
-        }));
-      }))
-    );
+  private searchDeals(query: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/deals`, {
+      params: {
+        title: query,
+        pageSize: '60'
+      }
+    });
   }
 
-  private fallback(query: string): Observable<any[]> {
+  private mapGameLookupResponse(response: any): any[] {
+    const games = Array.isArray(response)
+      ? response
+      : Object.values(response || {});
+
+    return games.flatMap((game: any) => {
+      const deals = Array.isArray(game?.deals) ? game.deals : [];
+      return deals.map((deal: any) => ({
+        ...deal,
+        gameID: game.gameID ?? deal.gameID,
+        title: game.info?.title ?? game.external ?? game.name ?? deal.title,
+        thumb: game.info?.thumb ?? game.thumb ?? deal.thumb,
+        steamAppID: game.info?.steamAppID ?? game.steamAppID ?? deal.steamAppID,
+        salePrice: deal.price ?? deal.salePrice,
+        normalPrice: deal.retailPrice ?? deal.normalPrice,
+        savings: deal.savings,
+        dealID: deal.dealID,
+        storeID: deal.storeID
+      }));
+    });
+  }
+
+  private normalize(query: string): string {
+    const value = query.trim().replace(/\s+/g, ' ');
     const aliases: { [key: string]: string } = {
       'gta 5': 'Grand Theft Auto V',
       'gta5': 'Grand Theft Auto V',
@@ -48,35 +78,6 @@ export class GameSearchService {
       'fh5': 'Forza Horizon 5'
     };
 
-    const alias = aliases[query.toLowerCase()];
-    if (!alias) {
-      return this.http.get<any[]>('https://www.cheapshark.com/api/1.0/deals', {
-        params: { title: query, pageSize: '20' }
-      });
-    }
-
-    return this.http.get<any[]>('https://www.cheapshark.com/api/1.0/games', {
-      params: { title: alias, limit: '25' }
-    }).pipe(
-      switchMap(games => {
-        if (!games.length) {
-          return this.http.get<any[]>('https://www.cheapshark.com/api/1.0/deals', {
-            params: { title: alias, pageSize: '20' }
-          });
-        }
-        const ids = games.map(game => game?.gameID).filter(Boolean).slice(0, 25).join(',');
-        return this.lookupGames(ids);
-      })
-    );
-  }
-
-  private normalize(query: string): string {
-    const value = query.trim().replace(/\s+/g, ' ');
-    const aliases: { [key: string]: string } = {
-      'gta 5': 'Grand Theft Auto V',
-      'gta5': 'Grand Theft Auto V',
-      'gta v': 'Grand Theft Auto V'
-    };
     return aliases[value.toLowerCase()] || value;
   }
 }
