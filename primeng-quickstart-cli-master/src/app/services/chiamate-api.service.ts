@@ -12,19 +12,53 @@ export class ChiamateAPIService {
   language = 'language=it-IT';
 
   /**
-   * Recupera dinamicamente le migliori offerte attualmente in vendita.
-   * CheapShark ordina per DealRating, cioè quanto è conveniente la deal,
-   * e non utilizziamo più una lista hardcoded di Steam App ID.
+   * Recupera giochi famosi che sono realmente in offerta in questo momento.
+   * Non usiamo ID hardcoded: la classifica viene ricostruita ad ogni accesso
+   * usando segnali dinamici di popolarità/qualità presenti su CheapShark.
    */
   getDeals(): Observable<any[]> {
-    return this.httpClient.get<any[]>('https://www.cheapshark.com/api/1.0/deals', {
-      params: {
-        onSale: '1',
-        sortBy: 'DealRating',
-        desc: '1',
-        pageSize: '60'
+    const popularGames$ = this.httpClient.get<any[]>(
+      'https://www.cheapshark.com/api/1.0/deals',
+      {
+        params: {
+          onSale: '1',
+          sortBy: 'ReviewCount',
+          desc: '1',
+          minimumReviewCount: '5000',
+          steamRating: '70',
+          pageSize: '60'
+        }
       }
-    });
+    );
+
+    const topRatedGames$ = this.httpClient.get<any[]>(
+      'https://www.cheapshark.com/api/1.0/deals',
+      {
+        params: {
+          onSale: '1',
+          sortBy: 'Metacritic',
+          desc: '1',
+          metacritic: '75',
+          pageSize: '60'
+        }
+      }
+    );
+
+    return forkJoin([popularGames$, topRatedGames$]).pipe(
+      map(([popularGames, topRatedGames]) => {
+        // Prima i giochi popolari, poi quelli molto apprezzati.
+        // Manteniamo l'ordine restituito da CheapShark e rimuoviamo i duplicati.
+        const uniqueGames = new Map<string, any>();
+
+        [...popularGames, ...topRatedGames].forEach(game => {
+          if (game?.gameID && !uniqueGames.has(game.gameID)) {
+            uniqueGames.set(game.gameID, game);
+          }
+        });
+
+        return Array.from(uniqueGames.values()).slice(0, 60);
+      })
+    );
   }
 
   searchGame(query: string): Observable<any[]> {
