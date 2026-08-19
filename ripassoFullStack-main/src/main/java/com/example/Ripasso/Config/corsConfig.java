@@ -7,6 +7,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class corsConfig implements WebMvcConfigurer {
+
     @Value("${app.cors.allowed-origin:http://localhost:4200}")
     private String allowedOrigin;
 
@@ -16,6 +17,7 @@ public class corsConfig implements WebMvcConfigurer {
                 .allowedOrigins(allowedOrigin)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(false);
+                .allowCredentials(false)
+                .maxAge(3600);
     }
 }
